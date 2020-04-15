@@ -1,5 +1,5 @@
 from collections import deque
-
+"""
 lst1 = deque([8,5,1])
 lst2 = deque([7,6,4,3,2])
 
@@ -26,4 +26,9 @@ else:
         lst.append(lst1[num1])
         num1+=1
 print(lst)
-    
+
+"""
+
+lst = [1,2,3]
+lst = deque(lst)
+print(lst)

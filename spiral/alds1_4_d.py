@@ -1,5 +1,7 @@
 # -*- coding : UTF-8 -*-
 
+from collections import deque
+
 n,k = map(int,input().split())
 w = []
 for _ in range(n):
@@ -12,7 +14,7 @@ def merge(lst1,lst2):
 
     while num1<len(lst1) and num2<len(lst2):
 
-        if lst1[num1] >= lst2[num2]:
+        if lst1[num1] <= lst2[num2]:
             n = lst1[num1]
             lst.append(n)
             num1+=1
@@ -44,37 +46,54 @@ def merge_sort(lst):
     
     return merge(left,right)
 
-w = merge_sort(w)
+def binary_search(lst,key):
+    left = 0
+    right = len(lst)
+    while left<right:
+        mid = (left+right)//2
+        if lst[mid]==key:
+            return 1
+        elif key < lst[mid]:
+            right = mid
+        else:
+            left = mid+1
+    return 0
 
-def solve(w):
+w = deque(merge_sort(w)) # 昇順に並べなおし、dequeにする
+
+def v(P):
+    # 最大荷重をPとしたときに、詰める荷物の総重量を求める関数
+    # P >= max(w) の範囲でのみ考える
 
     track = {}
-    for i in range(1,k+1):
-        track[i] = w[i-1]
-    
-    w = w[k:]
+    weight = 0
 
-    t_num = k
-    w_num = 0
-    max_value = track[1]
+    for i in range(k):
+        n = w.pop()
+        track[i] = n
+        weight += n
 
-    while w_num < n-k:    
+    # 荷物を小さい順に、大きい荷物が入ってるトラックから順に入れて行く
+    num = k-1
 
-        if track[t_num] + w[w_num] <= max_value:
-            track[t_num] += w[w_num]
-            w_num += 1
+    while num>=0:
 
-        elif t_num > 0:
-            t_num -=1
+        if num == k-1:
+            n = w.popleft()
+
+        if track[num] + n <= P:
+            track[num] += n
+            weight += n
+            num = k-1
         else:
-            track[1]
-        
-        
+            num-=1
+    
+    return weight
 
-         
+sum(w)+1 = max_p
 
+dp = [0 for i in range(w[n-1],max_p)]
 
-
-
-
-    return 0
+for p in range(w[n-1],max_p):
+    
+    
