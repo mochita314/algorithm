@@ -1,5 +1,9 @@
+# -*- coding : UTF-8 -*- 
+
 n = int(input())
 S = list(map(int,input().split()))
+
+# 番兵を使ったやり方がよくわかっていない
 
 global cnt
 cnt = 0
