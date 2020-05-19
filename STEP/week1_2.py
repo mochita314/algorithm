@@ -30,9 +30,10 @@ def compare(dict1,dict2):
 # 単語のスコアを計算する関数
 def calculate_score(word):
 
+    # qに関してはquで一つ３点とカウントするため、uを重複してカウントしないようにuをqの数だけ減らしておく
     d = collections.Counter(word)
     if 'q' in d:
-        d['u']-=1
+        d['u']-=d['q']
     
     two_points = ['c','f','h','l','m','p','v','w','y']
     three_points = ['j','k','q','x','z']
@@ -50,7 +51,7 @@ def calculate_score(word):
 
     return score
 
-def homework1_2(s):
+def homework1_2(s,method,dct,small_dct):
 
     # 見つかったanagramを格納するリスト
     ans = []
@@ -61,47 +62,60 @@ def homework1_2(s):
     # 与えられた文字列sの中の各文字の出現回数をカウントした辞書を作っておく
     s_dct = collections.Counter(s)
 
-    # 私のpc上のサイトから保存したテキストファイルのパス
-    dct_path = 'dictionary.words.txt'
-    with open(dct_path) as f:
-        dct = [s.strip() for s in f.readlines()]
-    
-    small_dct = []
-    for d in dct:
-        small_dct.append(d.lower())
-
     # 与えられた単語のnum文字目から始まる単語を、numを増やしながら順に調べていく
     num = 0
     checked_key = []
 
-    while num < len(s):
+    # 二分探索を用いる
+    if method==0:
 
-        key = s[num]
-        if key in checked_key:
-            # 既に調べた文字はもう調べない
+        while num < len(s):
+            
+            key = s[num]
+            if key in checked_key:
+                # 既に調べた文字はもう調べない
+                num += 1
+                continue
+            else:
+                checked_key.append(key)
+            
+            boundary = binary_search_for_boundary(dct)
+            
+            # binary searchで先に探索を開始するべきindexを取得
+            index1,index2 = binary_search_for_index(dct,key,boundary)
+
+            # 辞書中の各文字の出現回数をカウント
+            for j in [index1,index2]:
+
+                while j < len(dct) and small_dct[j][0] == key:
+
+                    dct_count = collections.Counter(small_dct[j])
+
+                    # anagramが見つかり次第全てansに追加
+                    if compare(s_dct,dct_count):
+                        ans.append(small_dct[j])
+                    
+                    j+=1
+
             num += 1
-            continue
-        else:
-            checked_key.append(key)
-        
-        boundary = binary_search_for_boundary(dct)
-        
-        # binary searchで先に探索を開始するべきindexを取得
-        index1,index2 = binary_search_for_index(dct,key,boundary)
+    
+    # 二分探索を用いず、辞書を前から順に見ていく
+    # 正直二分探索のスコアがやたら低いことがあり失敗している時がある気がするのでこっちだと漏れがない
+    # 時間のあるときに上の手法のデバッグをおこなう
+    else:
 
-        # 辞書中の各文字の出現回数をカウント
-        for j in [index1,index2]:
-            while j < len(dct) and small_dct[j][0] == key:
+        j=0
+        while j<len(dct):
 
-                dct_count = collections.Counter(small_dct[j])
+            dct_count = collections.Counter(small_dct[j])
 
-                if compare(s_dct,dct_count):
-                    ans.append(small_dct[j])
-                
-                j+=1
+            # anagramが見つかり次第全てansに追加
+            if compare(s_dct,dct_count):
+                ans.append(small_dct[j])
+            
+            j+=1
 
-        num += 1
-
+    # ansに格納されているanagramの中からスコアが最も高いものを返す
     score = 0
     word = ''
     for a in ans:
@@ -114,17 +128,6 @@ def homework1_2(s):
 
 if __name__ == '__main__':
 
-    '''
-    import argparse
-
-    parser = argparse.ArgumentParser(description='与えられた文字列に対してAnagramを返すプログラム')
-    parser.add_argument('-i','--input',help='入力として与える文字列',default='google')
-    args = parser.parse_args()
-
-    score,word = homework1_2(args.input)
-
-    print(score,word)
-    '''
     import time
     import argparse
     from selenium import webdriver
@@ -132,26 +135,43 @@ if __name__ == '__main__':
     from selenium.webdriver.common.by import By
 
     parser = argparse.ArgumentParser(description='与えられた文字列に対してAnagramを返すプログラム')
-    parser.add_argument('-f','--flag',help='終了基準',default=1)
+    parser.add_argument('-s','--score',type=int,help='目標得点',default=1600)
+    parser.add_argument('-i','--max_iter',type=int,help='最大試行回数',default=5)
+    parser.add_argument('-m','--method',type=int,help='探索方法',default=0)
+
     args = parser.parse_args()
 
-    if args.flag==1:
-        target_score = 1900
+    # 目標得点
+    target_score = args.score
+    # 最大試行回数
+    max_iter = args.max_iter
+    # 二分探索を用いるか否か
+    method = args.method
+
+    # 私のpc上のサイトから保存したテキストファイルのパス
+    dct_path = 'dictionary.words.txt'
+    with open(dct_path) as f:
+        dct = [s.strip() for s in f.readlines()]
+    
+    small_dct = []
+    for d in dct:
+        small_dct.append(d.lower())
 
     trial=0
     my_score=0
 
-    while my_score < target_score and trial<4:
+    while my_score < target_score and trial < max_iter:
 
         driver = webdriver.Chrome()
 
         # webページにアクセス
         driver.get('https://icanhazwordz.appspot.com/')
 
+        # 連続何回目の試行か
         trial+=1
         print('trial_time:',trial)
 
-        # 自分の累計スコア
+        # 今回の自分の累計スコア
         my_score = 0
         
         # 全部で10個のワードをつくる
@@ -167,8 +187,7 @@ if __name__ == '__main__':
                     letters+=letter
 
             # 最高得点を得る単語およびその時のスコアの取得
-            score,word = homework1_2(letters)
-            print('calculated')
+            score,word = homework1_2(letters,method,dct,small_dct)
 
             # その単語を送信
             driver.find_element(By.XPATH,'/html/body/table[1]/tbody/tr/td[1]/form/input['+str(cnt+2)+']').send_keys(str(word))
@@ -181,48 +200,20 @@ if __name__ == '__main__':
             time.sleep(0.1)
         
     # 10回終了して最終的なスコアが出たら、スコアを提出するかどうかを決定
+    print('current score:',my_score)
 
     if my_score>target_score:
-        name = driver.find_element(By.XPATH,'/html/body/table[1]/tbody/tr/td[1]/form/table/tbody/tr[1]/td[2]/input').send_keys('Eri Kizawa')
-        github_url = driver.find_element(By.XPATH,'/html/body/table[1]/tbody/tr/td[1]/form/table/tbody/tr[2]/td[2]/input').send_keys()
 
-
-
-
-
+        print('high score!')
+        driver.find_element(By.XPATH,'/html/body/table[1]/tbody/tr/td[1]/form/table/tbody/tr[1]/td[2]/input').send_keys('Eri Kizawa')
+        driver.find_element(By.XPATH,'/html/body/table[1]/tbody/tr/td[1]/form/table/tbody/tr[2]/td[2]/input').send_keys('https://github.com/mochita314/algorithm/blob/master/STEP/week1_2.py')
+        #driver.find_element(By.XPATH,'/html/body/table[1]/tbody/tr/td[1]/form/table/tbody/tr[3]/td[2]/input').click()
+        driver.find_element(By.XPATH,'/html/body/table[1]/tbody/tr/td[1]/form/table/tbody/tr[5]/td[2]').click()
+        driver.find_element(By.XPATH,'/html/body/table[1]/tbody/tr/td[1]/form/table/tbody/tr[7]/td[2]/input').send_keys('Eri Kizawa')
+        driver.find_element(By.XPATH,'/html/body/table[1]/tbody/tr/td[1]/form/table/tbody/tr[8]/td[2]/input').send_keys('eri.k.pn28@gmail.com')
+        driver.find_element(By.XPATH,'/html/body/table[1]/tbody/tr/td[1]/form/input[13]').click()
     
-
-    
-
-
-'''
-/html/body/table[1]/tbody/tr/td[1]/table/tbody/tr[1]/td[1]/div
-/html/body/table[1]/tbody/tr/td[1]/table/tbody/tr[1]/td[2]/div
-/html/body/table[1]/tbody/tr/td[1]/table/tbody/tr[1]/td[3]/div
-/html/body/table[1]/tbody/tr/td[1]/table/tbody/tr[1]/td[4]/div
-
-/html/body/table[1]/tbody/tr/td[1]/table/tbody/tr[2]/td[1]/div
-/html/body/table[1]/tbody/tr/td[1]/table/tbody/tr[2]/td[2]/div
-/html/body/table[1]/tbody/tr/td[1]/table/tbody/tr[2]/td[3]/div
-/html/body/table[1]/tbody/tr/td[1]/table/tbody/tr[2]/td[4]/div
-
-/html/body/table[1]/tbody/tr/td[1]/table/tbody/tr[3]/td[1]/div
-
-/html/body/table[1]/tbody/tr/td[1]/table/tbody/tr[4]/td[1]/div
-
-//*[@id="MoveField"]
-/html/body/table[1]/tbody/tr/td[1]/form/input[3]
-
-/html/body/table[1]/tbody/tr/td[1]/form/input[5]
-
-/html/body/table[1]/tbody/tr/td[1]/form/input[4]
-
-/html/body/table[1]/tbody/tr/td[1]/form/input[8]
-/html/body/table[1]/tbody/tr/td[1]/form/input[4]
-/html/body/table[1]/tbody/tr/td[1]/form/input[5]
-/html/body/table[1]/tbody/tr/td[1]/form/input[7]
-
-/html/body/table[1]/tbody/tr/td[1]/form/input[6]
-'''
+    else:
+        print('failed')
 
 # https://icanhazwordz.appspot.com/highscores
