@@ -206,7 +206,7 @@ if __name__ == '__main__':
 
         print('high score!')
         driver.find_element(By.XPATH,'/html/body/table[1]/tbody/tr/td[1]/form/table/tbody/tr[1]/td[2]/input').send_keys('Eri Kizawa')
-        driver.find_element(By.XPATH,'/html/body/table[1]/tbody/tr/td[1]/form/table/tbody/tr[2]/td[2]/input').send_keys('https://github.com/mochita314/algorithm/blob/master/STEP/week1_2.py')
+        driver.find_element(By.XPATH,'/html/body/table[1]/tbody/tr/td[1]/form/table/tbody/tr[2]/td[2]/input').send_keys('https://github.com/mochita314/algorithm/blob/master/STEP/week1/week1_2.py')
         #driver.find_element(By.XPATH,'/html/body/table[1]/tbody/tr/td[1]/form/table/tbody/tr[3]/td[2]/input').click()
         driver.find_element(By.XPATH,'/html/body/table[1]/tbody/tr/td[1]/form/table/tbody/tr[5]/td[2]').click()
         driver.find_element(By.XPATH,'/html/body/table[1]/tbody/tr/td[1]/form/table/tbody/tr[7]/td[2]/input').send_keys('Eri Kizawa')
