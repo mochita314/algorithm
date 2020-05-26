@@ -9,8 +9,9 @@ class Cache:
 
     self.oldest = None
     self.newest = None
-    self.cache = [[0 for i in range(4)] for j in range(n)]
+    self.cache = {}
     self.size = n
+    self.mod = 10**9 + 7
 
   def url_to_index(self,url):
     # urlを数字のindexに変換
@@ -21,29 +22,15 @@ class Cache:
 
     return key
   
-  def disjoint(self,a,b):
-    # aとbが互いに素であるかどうかを判定する
-
-    for i in range(2,min(a,b)+1):
-      if a % i == 0  and b % i == 0:
-        return False
-    
-    return True
-  
   def h1(self,key):
 
-    key = key % self.size
+    key = key % self.mod
     
     return key
   
   def h2(self,key):
 
-    key = 1 + key % (self.size-1)
-    
-    # この関数によって与えられるkeyが、ハッシュテーブルのサイズと互いに素でないと、参照できないkeyが出てきてしまう
-    # したがって互いに素になるまで、keyを1ずつ増やす
-    while not self.disjoint(self.size,key):
-      key += 1
+    key = 1 + key % (self.mod-1)
 
     return key
 
@@ -51,20 +38,11 @@ class Cache:
     # iは衝突回数
     # 衝突が起きた場合、h1に対して別のハッシュ関数h2を組み合わせて別のキーを探す
 
-    key = (self.h1(key) + i * self.h2(key)) % self.size
+    key = (self.h1(key) + i * self.h2(key)) % self.mod
 
     return key
   
   def find_key(self,url):
-
-    '''
-    正直、Xが小さいと（たとえば今回のテストケースのように4など）衝突が起き続けやすく、
-    この関数によってハッシュテーブルの検索を行う際に、結局全てのkeyを参照しなくてはいけないことが多く、
-    その場合の時間計算量はほぼO(X)となってしまう
-
-    したがって、空間計算量に制限がなければ、Xに関係なくハッシュテーブルのサイズは衝突を回避するために十分大きくとったほうがよいし、
-    できれば素数にするのが望ましいが、今回は空間計算量もO(X)との指定があったためその条件を優先している
-    '''
   
     n = self.size
 
@@ -75,26 +53,32 @@ class Cache:
     2 : when the url is already in the cache.
     '''
 
+    key = -1
     flag = 0
 
-    for i in range(self.size):
+
+    i = 0
+    while True:
       # 最大X回keyを更新すれば、全てのkeyを参照できる（ようにh2に制約をかけているので）
 
       key = self.h(self.url_to_index(url),i)
 
-      if self.cache[key] == [0,0,0,0]:
-        # そこが空いている
-        return key,flag
+      if self.cache.get(key) == None:
+
+        if len(self.cache) < self.size:
+          # そこが空いている
+          return key,flag
+        else:
+          flag = 1
+          return key,flag
 
       elif self.cache[key][0] == url:
         # そこにすでに格納されている
         flag = 2
         return key,flag
-    
-    # 全てのkeyが他のurlで埋まっていた場合
-    flag = 1
-
-    return key,flag
+      
+      else:
+        i+=1
 
   # Access a page and update the cache so that it stores the most
   # recently accessed N pages. This needs to be done with mostly O(1).
@@ -146,7 +130,9 @@ class Cache:
       new_parent_url = self.newest
       new_parent_key,flag2 = self.find_key(new_parent_url)
       self.cache[new_parent_key][3] = url
-      self.cache[oldest_key] = [url,contents,new_parent_url,0]
+
+      self.cache.pop(oldest_key)
+      self.cache[key] = [url,contents,new_parent_url,0]
 
       self.newest = url
       self.oldest = second_oldest
