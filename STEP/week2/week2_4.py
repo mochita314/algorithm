@@ -13,6 +13,7 @@ class Cache:
     self.size = n
 
   def url_to_index(self,url):
+    # urlを数字のindexに変換
 
     key = 0
     for s in url:
@@ -107,8 +108,12 @@ class Cache:
     # 追加するkeyのvalueのほうにも、親のurlを追加する
     key,flag = self.find_key(url)
 
+    # flagの値に応じて場合分けをして、親子関係の修正・新しいurlの登録をおこなう
+    # 関数にまとめて抽象化できないか考えたが、むしろ煩雑になってしまったのでこのままにしておく
+
     if flag == 0:
       # when the url is not in the cache and the cache is not full
+
       new_parent_url = self.newest
 
       self.newest = url
@@ -204,7 +209,6 @@ class Cache:
         cnt += 1
     
     return pages
-
 
 # Does your code pass all test cases? :)
 def cache_test():
