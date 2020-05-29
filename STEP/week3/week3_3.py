@@ -39,6 +39,30 @@ def readRightbracket(line,index):
     token = {'type': 'RIGHT'}
     return token, index + 1
 
+def tokenize(line):
+    tokens = []
+    index = 0
+    while index < len(line):
+        if line[index].isdigit():
+            (token, index) = readNumber(line, index)
+        elif line[index] == '+':
+            (token, index) = readPlus(line, index)
+        elif line[index] == '-':
+            (token, index) = readMinus(line, index)
+        elif line[index] == '*':
+            (token, index) = readMultiply(line, index)
+        elif line[index] == '/':
+            (token, index) = readDevide(line, index)
+        elif line[index] == '(':
+            (token, index) = readLeftbracket(line, index)
+        elif line[index] == ')':
+            (token, index) = readRightbracket(line, index)
+        else:
+            print('Invalid character found: ' + line[index])
+            exit(1)
+        tokens.append(token)
+    return tokens
+
 def make_brackets_dict(tokens):
     '''
     括弧のindexを記録した辞書を作る関数
@@ -59,12 +83,13 @@ def make_brackets_dict(tokens):
             left_index = left_lst.pop(-1) # 括弧の右側が出てきたとき、対応する左側は、そこまでで最も後に登場した括弧なので、リストの最後の要素をとりだせばよい
             right_index = index
             key = len(left_lst) + 1 # その括弧が外側からいくつめの括弧なのかは、ペアの右側が見つからずにリストに残っている左側の数+1
-            if brackets_dict[key] == None:
+            if brackets_dict.get(key) == None:
                 brackets_dict[key] = [(left_index,right_index)]
             else:
                 brackets_dict[key].append((left_index,right_index))
             if key > highest:
                 highest = key
+        index += 1
 
     return brackets_dict
 
@@ -73,27 +98,7 @@ def calculate_digits_in_brackets():
     make_brackets_dict関数で得られた辞書をもとに、
     優先順位の高い括弧の中から計算し、tokensを括弧内の計算を全て終えた状態にして返す関数
     '''
-    return
-
-def tokenize(line):
-    tokens = []
-    index = 0
-    while index < len(line):
-        if line[index].isdigit():
-            (token, index) = readNumber(line, index)
-        elif line[index] == '+':
-            (token, index) = readPlus(line, index)
-        elif line[index] == '-':
-            (token, index) = readMinus(line, index)
-        elif line[index] == '*':
-            (token, index) = readMultiply(line, index)
-        elif line[index] == '/':
-            (token, index) = readDevide(line, index)
-        else:
-            print('Invalid character found: ' + line[index])
-            exit(1)
-        tokens.append(token)
-    return tokens
+    return 0
 
 def mul_and_div(tokens):
     '''
@@ -182,7 +187,6 @@ def test(line):
         print("PASS! (%s = %f)" % (line, expectedAnswer))
     else:
         print("FAIL! (%s should be %f but was %f)" % (line, expectedAnswer, actualAnswer))
-
 
 # Add more tests to this function :)
 def runTest():
