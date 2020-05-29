@@ -135,7 +135,7 @@ def mul_and_div(tokens):
 
 def plus_and_minus(tokens):
     '''
-    掛け算と割り算を終えた状態のtokensに対して、
+    掛け算と割り算までを終えた状態のtokensに対して、
     残っている足し算と引き算を実行して、
     最終的な計算結果を返す関数
     '''
@@ -177,14 +177,13 @@ def calculate_digits_in_brackets_first(tokens,highest,brackets_dict):
         brackets = brackets_dict[key]
         for bracket in brackets:
             (left, right) = bracket
-            calculate_area = tokens[left+1:right] # 括弧内のみを計算
-            answer = ordered_calculation(calculate_area)
+            calculate_area = tokens[left+1:right] # 括弧内のみを計算するので、その範囲を指定
+            answer = ordered_calculation(calculate_area) # 各括弧内の計算は、掛け算割り算->足し算引き算の順
             tokens[left] = {'type': 'NUMBER', 'number': answer}
             for i in range(left+1,right+1):
                 tokens[i] = {'type': 'PASS'}
         key -= 1
-    answer = ordered_calculation(tokens)
-
+    answer = ordered_calculation(tokens) #括弧内の計算が終わったら、全体に対して掛け算割り算->足し算引き算の順で最終的な計算を行う
     return answer
 
 def evaluate(tokens):
