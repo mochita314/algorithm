@@ -147,6 +147,7 @@ def runTest():
     test("3/-5+2*-4")
     test('-3+-4*5')
     test('-8+2/-4+5.5*2*-3*-3')
+    test('3+++++++5')
     print("==== Test finished! ====\n")
 
 runTest()

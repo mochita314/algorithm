@@ -91,14 +91,7 @@ def make_brackets_dict(tokens):
                 highest = key
         index += 1
 
-    return brackets_dict
-
-def calculate_digits_in_brackets():
-    '''
-    make_brackets_dict関数で得られた辞書をもとに、
-    優先順位の高い括弧の中から計算し、tokensを括弧内の計算を全て終えた状態にして返す関数
-    '''
-    return 0
+    return highest,brackets_dict
 
 def mul_and_div(tokens):
     '''
@@ -118,28 +111,21 @@ def mul_and_div(tokens):
     new_tokens = [tokens[0]]
     while index < len(tokens):
         if tokens[index]['type'] == 'MULTIPLY':
-            # 負の数に対応、掛ける数が負の数だった場合、*の次に-がくるので、-1倍する
-            if tokens[index+1]['type'] == 'MINUS':
+            if tokens[index+1]['type'] == 'MINUS': # 負の数に対応、掛ける数が負の数だった場合、*の次に-がくるので、-1倍する
                 new_tokens[-1]['number'] *= -1
-                # -の次の数が欲しいのでindexを１増やす
-                index += 1
-            # new_tokensに格納された最後の数（直前の数）に対して、*(or *-)の次にある数を掛ける
-            new_tokens[-1]['number'] *= tokens[index+1]['number']
-            # 上式でindex番目の数を掛ける数として処理したので、その分indexを増加
-            index += 1
+                index += 1 # -の次の数が欲しいのでindexを１増やす
+            new_tokens[-1]['number'] *= tokens[index+1]['number'] # new_tokensに格納された最後の数（直前の数）に対して、*(or *-)の次にある数を掛ける
+            index += 1 # 上式でindex番目の数を掛ける数として処理したので、その分indexを増加
         elif tokens[index]['type'] == 'DEVIDE':
-            # 負の数に対応、割る数が負の数だった場合、/の次に-がくるので、-1倍する
-            if tokens[index+1]['type'] == 'MINUS':
+            if tokens[index+1]['type'] == 'MINUS': # 負の数に対応、割る数が負の数だった場合、/の次に-がくるので、-1倍する
                 new_tokens[-1]['number'] *= -1
-                # -の次の数が欲しいのでindexを１増やす
-                index += 1
-            # new_tokensに格納された最後の数（直前の数）に対して、/(or /-)の次にある数で割る
-            new_tokens[-1]['number'] /= tokens[index+1]['number']
-            # 上式でindex番目の数を割る数として処理したので、その分indexを増加
-            index += 1
-        # 足し算引き算、あるいは数はそのまま格納していく
-        elif tokens[index]['type'] in ['NUMBER','PLUS','MINUS']:
-            new_tokens.append(tokens[index]) 
+                index += 1 # -の次の数が欲しいのでindexを１増やす
+            new_tokens[-1]['number'] /= tokens[index+1]['number'] # new_tokensに格納された最後の数（直前の数）に対して、/(or /-)の次にある数で割る
+            index += 1 # 上式でindex番目の数を割る数として処理したので、その分indexを増加
+        elif tokens[index]['type'] in ['NUMBER','PLUS','MINUS']: # 足し算引き算、あるいは数はそのまま格納していく
+            new_tokens.append(tokens[index])
+        elif tokens[index]['type'] == 'PASS': # PASSだった場合は無視して何もせず次のindexに進む
+            pass
         else:
             print('Invalid syntax')
             print(index)
@@ -168,15 +154,42 @@ def plus_and_minus(tokens):
         index += 1
     return answer
 
+def ordered_calculation(tokens):
+    tokens.insert(0,{'type': 'PLUS'}) # Insert a dummy '+' token
+    tokens = mul_and_div(tokens) # 最初に掛け算割り算
+    answer = plus_and_minus(tokens) # 次に足し算引き算
+    return answer
+
+def calculate_digits_in_brackets_first(tokens,highest,brackets_dict):
+    '''
+    make_brackets_dict関数で得られた辞書をもとに、
+    優先順位の高い括弧の中から計算していく関数
+
+    それぞれの括弧内では掛け算割り算->足し算引き算の順で計算を行う
+    indexがずれてしまうと不都合（括弧のindexを最初に調べた数で記録してあるため）なので、
+    left+1番目からright-1番目までの計算をしたら、
+    その計算結果をtokensのleft番目に格納し直し、left+1番目からright番目まではtokensから削除するのではなう、
+    {'type:'PASS'}を格納し、以降の計算でこの項は無視するようにすることで、
+    indexをずらさずに処理する
+    '''
+    key = highest # 優先順位の高い括弧（最も内側にある括弧）内から計算していく
+    while key > 0:
+        brackets = brackets_dict[key]
+        for bracket in brackets:
+            (left, right) = bracket
+            calculate_area = tokens[left+1:right] # 括弧内のみを計算
+            answer = ordered_calculation(calculate_area)
+            tokens[left] = {'type': 'NUMBER', 'number': answer}
+            for i in range(left+1,right+1):
+                tokens[i] = {'type': 'PASS'}
+        key -= 1
+    answer = ordered_calculation(tokens)
+
+    return answer
+
 def evaluate(tokens):
-    tokens.insert(0, {'type': 'PLUS'}) # Insert a dummy '+' token
-    for i in range(2):
-        if i == 0:
-            # 一周目は掛け算・割り算を計算
-            tokens = mul_and_div(tokens)
-        else:
-            # 二周目は足し算・引き算を計算
-            answer = plus_and_minus(tokens)
+    highest, brackets_dict = make_brackets_dict(tokens) # まず括弧の位置をチェック
+    answer = calculate_digits_in_brackets_first(tokens,highest,brackets_dict) # 括弧->掛け算割り算->足し算引き算の優先順位で計算をしていく
     return answer
 
 def test(line):
@@ -197,6 +210,8 @@ def runTest():
     test("3/-5+2*-4")
     test('-3+-4*5')
     test('-8+2/-4+5.5*2*-3*-3')
+    test('3*4-(2+(5*2-1)/(3-5*3+(4-2)))*3')
+    test('3*(((4.2-1)*(3.5-1)+8.5)*10)+1')
     print("==== Test finished! ====\n")
 
 runTest()
