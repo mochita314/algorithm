@@ -118,7 +118,7 @@ def plus_and_minus(tokens):
     return answer
 
 def evaluate(tokens):
-    tokens.insert(0, {'type': 'PLUS'}) # Insert a dummy '+' token
+    # Insert a dummy '+' token
     for i in range(2):
         if i == 0:
             # 一周目は掛け算・割り算を計算
