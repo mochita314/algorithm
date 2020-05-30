@@ -63,13 +63,14 @@ def tokenize(line):
         tokens.append(token)
     return tokens
 
-def make_brackets_dict(tokens):
+def define_the_order_of_brackets(tokens):
     '''
-    括弧のindexを記録した辞書を作る関数
+    括弧のindexを記録した辞書を作り、計算する括弧の順番を決める関数
     括弧が重なった時、内側にある括弧ほど優先順位が高いので、
     key : 外側殻数えて何層目の括弧かを表す数
     value : [(左のカッコのindex、右のカッコのindex)] (同じ層にある括弧が複数個ある場合は、随時appendしていく)
-    という形にして作った辞書を返すことで、このあとの処理の順番がわかるようにする
+    という形にして作った辞書を作り、そこからkeyの値の大きい順にindexを取り出し、
+    格納していったリストを返すことで、順番を与える
     '''
     brackets_dict = {}
     
@@ -90,15 +91,20 @@ def make_brackets_dict(tokens):
             if key > highest:
                 highest = key
         index += 1
-
-    return highest,brackets_dict
+    key = highest # 最も内側にある括弧から順番に、辞書から取り出してリストorderに格納していく
+    order = []
+    while key > 0:
+        brackets = brackets_dict[key]
+        for bracket in brackets:
+            order.append(bracket)
+        key-=1
+    return order
 
 def mul_and_div(tokens):
     '''
     tokensを、掛け算と割り算を終えた状態に更新して返す関数
 
-    たとえば、
-    3 + 2 * 5　だったら、
+    たとえば、3 + 2 * 5　だったら、
     tokens : [{'type': 'NUMBER', 'number': 3},{'type': 'PLUS'},{'type': 'NUMBER', 'number': 2},{'type': 'MULTIPLY'},{'type': 'NUMBER', 'number': 5}]
     となっているところを、
 
@@ -160,35 +166,39 @@ def ordered_calculation(tokens):
     answer = plus_and_minus(tokens) # 次に足し算引き算
     return answer
 
-def calculate_digits_in_brackets_first(tokens,highest,brackets_dict):
+def calculate_each_bracket(tokens,left,right):
     '''
-    make_brackets_dict関数で得られた辞書をもとに、
-    優先順位の高い括弧の中から計算していく関数
+    ある１つの括弧内の計算を掛け算割り算->足し算引き算の順で行い、
+    その計算が終わった状態にtokensを更新する関数
 
-    それぞれの括弧内では掛け算割り算->足し算引き算の順で計算を行う
     indexがずれてしまうと不都合（括弧のindexを最初に調べた数で記録してあるため）なので、
     left+1番目からright-1番目までの計算をしたら、
-    その計算結果をtokensのleft番目に格納し直し、left+1番目からright番目まではtokensから削除するのではなう、
+    その計算結果をtokensのleft番目に格納し直し、left+1番目からright番目まではtokensから削除するのではなく、
     {'type:'PASS'}を格納し、以降の計算でこの項は無視するようにすることで、
     indexをずらさずに処理する
     '''
-    key = highest # 優先順位の高い括弧（最も内側にある括弧）内から計算していく
-    while key > 0:
-        brackets = brackets_dict[key]
-        for bracket in brackets:
-            (left, right) = bracket
-            calculate_area = tokens[left+1:right] # 括弧内のみを計算するので、その範囲を指定
-            answer = ordered_calculation(calculate_area) # 各括弧内の計算は、掛け算割り算->足し算引き算の順
-            tokens[left] = {'type': 'NUMBER', 'number': answer}
-            for i in range(left+1,right+1):
-                tokens[i] = {'type': 'PASS'}
-        key -= 1
-    answer = ordered_calculation(tokens) #括弧内の計算が終わったら、全体に対して掛け算割り算->足し算引き算の順で最終的な計算を行う
-    return answer
+    calculate_area = tokens[left+1:right] # 括弧内のみを計算するので、その範囲を指定
+    answer = ordered_calculation(calculate_area) # 各括弧内の計算は、掛け算割り算->足し算引き算の順で行う
+    tokens[left] = {'type': 'NUMBER', 'number': answer}
+    for i in range(left+1,right+1):
+        tokens[i] = {'type': 'PASS'}
+    return tokens
+
+def calculate_all_brackets(tokens,order):
+    '''
+    define_the_order_of_brackets関数で与えられた計算順序にしたがって、
+    calculate_each_bracket関数を適用して、
+    全ての括弧内の計算処理を終える関数
+    '''
+    for i in range(len(order)):
+        (left, right) = order[i]
+        tokens = calculate_each_bracket(tokens,left,right)
+    return tokens
 
 def evaluate(tokens):
-    highest, brackets_dict = make_brackets_dict(tokens) # まず括弧の位置をチェック
-    answer = calculate_digits_in_brackets_first(tokens,highest,brackets_dict) # 括弧->掛け算割り算->足し算引き算の優先順位で計算をしていく
+    order = define_the_order_of_brackets(tokens) # まず括弧を優先順位の高い順番に並べる
+    tokens = calculate_all_brackets(tokens,order) # 優先順位の高い順に全ての括弧を計算する
+    answer = ordered_calculation(tokens) # 括弧の処理が終わったら、掛け算割り算->足し算引き算の順で全ての計算を行う
     return answer
 
 def test(line):
