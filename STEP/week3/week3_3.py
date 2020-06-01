@@ -108,8 +108,8 @@ def mul_and_div(tokens):
     tokens : [{'type': 'NUMBER', 'number': 3},{'type': 'PLUS'},{'type': 'NUMBER', 'number': 2},{'type': 'MULTIPLY'},{'type': 'NUMBER', 'number': 5}]
     となっているところを、
 
-    3 + 7　の状態に処理して、すなわち
-    tokens : [{'type': 'NUMBER', 'number':3},{'type': 'PLUS'},{'type': 'NUMBER', 'number': 7}]
+    3 + 10　の状態に処理して、すなわち
+    tokens : [{'type': 'NUMBER', 'number':3},{'type': 'PLUS'},{'type': 'NUMBER', 'number': 10}]
 
     にして返す
     '''
