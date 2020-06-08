@@ -29,7 +29,6 @@ def fix_follow_map(follow_map):
     必ず相互フォローになっていると考える
     
     そうなるように、お互いがお互いのidを必ず含むように修正する
-
     そうでないとあとで不都合なので
     '''
     for key in follow_map:
@@ -89,6 +88,7 @@ def bfs(follow_map,id_dct):
 
     return
 
+'''
 def advanced_bfs(follow_map,id_dct):
 
     start_id = id_dct['start_id']
@@ -128,13 +128,73 @@ def advanced_bfs(follow_map,id_dct):
         #route = None # 必要ないはずだけど挙動がおかしいから初期化してみる
 
     return ways
+'''
+def advanced_bfs(follow_map,id_dct):
+
+    start_id = id_dct['start_id']
+    goal_id = id_dct['goal_id']
+
+    queue = deque()
+    for f in follow_map[start_id]:
+        queue.append([f,[start_id]])
+
+    visited = {start_id:'checked'}
+
+    ways = {}
+
+    while queue:
+
+        ID_route = queue.popleft()
+        ID = ID_route[0]
+        route = ID_route[1]
+
+        if visited.get(ID) == None:
+            if ID == goal_id:
+                print('Reached!!')
+                route.append(ID)
+                key = len(route)
+                ways[key] = route
+            else:
+                visited[ID] = 'checked'
+                followers = follow_map[ID]
+                route.append(ID)
+                for f in followers:
+                    if visited.get(f) == None:
+                        queue.append([f,route])
+
+    return ways
 
 def dfs(follow_map,id_dct):
-    
-    return False
+
+    start_id = id_dct['start_id']
+    goal_id = id_dct['goal_id']
+
+    stack = deque(follow_map[start_id])
+
+    dis = {start_id:0}
+    for ID in stack:
+        dis[ID] = 1
+
+    ways = deque()
+
+    while stack:
+
+        ID = stack.pop()
+
+        if ID == goal_id:
+            print('Reached!')
+            ways.append(dis[ID])
+        else:
+            followers = follow_map[ID]
+            for f in followers:
+                if dis.get(f) == None:
+                    dis[f] = dis[ID] + 1
+                    stack.append(f)
+                
+    return ways
 
 def advanced_dfs(follow_map,id_dct):
-    return False
+    return ways
 
 def get_min_and_max_route(ways):
     '''
@@ -160,4 +220,6 @@ if __name__ == '__main__':
     id_dct = get_ids_from_name('data/class/nicknames.txt','debra','adrian')
 
     ways = advanced_bfs(follow_map,id_dct)
+    ways = dfs(follow_map,id_dct)
+    
     print(ways)
