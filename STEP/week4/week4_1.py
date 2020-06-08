@@ -106,21 +106,26 @@ def advanced_bfs(follow_map,id_dct):
 
         ID_route = queue.popleft()
         ID = ID_route[0]
+
+        # そこまでのルート
         route = ID_route[1]
 
+        # そのIDを取り出した=訪れたときにrouteに追加する
+        route.append(ID)
+        
         if visited.get(ID) == None:
+    
             if ID == goal_id:
                 print('Reached!!')
-                route.append(ID)
                 key = len(route)
                 ways[key] = route
             else:
                 visited[ID] = 'checked'
                 followers = follow_map[ID]
-                route.append(ID)
                 for f in followers:
-                    if visited.get(f) == None:
-                        queue.append([f,route])
+                    queue.append([f,route])
+        
+        #route = None # 必要ないはずだけど挙動がおかしいから初期化してみる
 
     return ways
 
