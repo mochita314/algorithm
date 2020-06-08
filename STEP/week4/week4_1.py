@@ -74,9 +74,6 @@ def bfs(follow_map,id_dct):
 
     visited = {start_id:'checked'}
 
-    for q in queue:
-        visited[q] = 'checked'
-
     while queue:
 
         ID = queue.popleft()
@@ -88,67 +85,16 @@ def bfs(follow_map,id_dct):
             else:
                 visited[ID] = 'checked'
                 followers = follow_map[ID]
-                queue.append(followers)
+                queue.extend(followers)
 
     return
 
-def advanced_bfs(follow_map,id_dct):
-    '''
-    見つかったときに起点から何ノード目かも調べる
-    正解ルートを全て探して距離の短い順に並べたリストを返す
-    途中のノードも記憶していく
-    '''
+def dfs(follow_map,id_dct):
+    
+    return False
 
-    visited = {}
-
-    start_id = id_dct['start_id']
-    goal_id = id_dct['goal_id']
-    print('start:',start_id,'/ goal:',goal_id)
-
-    visited[start_id] = 'checked'
-
-    queue = deque()
-
-    for ID in follow_map[start_id]:
-
-        id_route = [ID,[start_id]]
-        queue.append(id_route)
-
-    print('queue:',queue)
-
-    ways = {}
-
-    while queue:
-
-        id_route = queue.popleft()
-
-        ID = id_route[0]
-        route = id_route[1]
-
-        if visited.get(ID) == None:
-
-            print('route:',route)
-            print('id_route:',id_route)
-
-            if ID == goal_id:
-                print('Reached')
-                route.append(ID)
-                key = len(route)
-                ways[key] = route
-
-            else:
-                visited[ID] = 'checked'
-                route.append(ID)
-                followers = follow_map[ID]
-                for f in followers:
-                    id_route = [f,route]
-                    queue.append(id_route)
-        else:
-            pass
-
-    ways = sorted(ways.items())
-
-    return ways
+def advanced_dfs(follow_map,id_dct):
+    return False
 
 def get_min_and_max_route(ways):
     '''
@@ -163,11 +109,6 @@ def get_min_and_max_route(ways):
 
     return min_dis,min_route,max_dis,max_route
 
-def dfs(follow_map,id_dct):
-    return False
-
-def advanced_dfs(follow_map,id_dct):
-    return False
 
 if __name__ == '__main__':
 
@@ -178,22 +119,4 @@ if __name__ == '__main__':
 
     id_dct = get_ids_from_name('data/class/nicknames.txt','debra','adrian')
 
-    for key in follow_map:
-        print(key)
-        print(follow_map[key])
-        print('\n')
-
-    
-    '''
-    follow_map = {1:[3,5,6],2:[4,5],3:[1,6],4:[2,6],5:[1,2],6:[1,3,4]}
-    id_dct = {'start_id':1,'goal_id':2}
-    '''
-
-    ways = advanced_bfs(follow_map,id_dct)
-
-    print(ways)
-
-    #if len(ways) >= 1:
-        #min_dis,min_route,max_dis,max_route = get_min_and_max_route(ways)
-        #print(min_dis,min_route)
-        #print(max_dis,max_route)
+    bfs(follow_map,id_dct)
