@@ -164,37 +164,15 @@ def advanced_bfs(follow_map,id_dct):
 
     return ways
 
-def dfs(follow_map,id_dct):
-
-    start_id = id_dct['start_id']
-    goal_id = id_dct['goal_id']
-
-    stack = deque(follow_map[start_id])
-
-    dis = {start_id:0}
-    for ID in stack:
-        dis[ID] = 1
-
-    ways = deque()
-
-    while stack:
-
-        ID = stack.pop()
-
-        if ID == goal_id:
-            print('Reached!')
-            ways.append(dis[ID])
-        else:
-            followers = follow_map[ID]
-            for f in followers:
-                if dis.get(f) == None:
-                    dis[f] = dis[ID] + 1
-                    stack.append(f)
-                
-    return ways
-
-def advanced_dfs(follow_map,id_dct):
-    return ways
+def dfs(follow_map,pos,goal,dis,visited):
+ 
+    for f in follow_map[pos]:
+        if f == goal:
+            print('Reached',dis)
+            return dis
+        elif visited.get(f) == None:
+            visited[f] = 'checked'
+            dfs(follow_map,f,goal,dis+1,visited)
 
 def get_min_and_max_route(ways):
     '''
@@ -218,8 +196,8 @@ if __name__ == '__main__':
     follow_map = fix_follow_map(follow_map)
 
     id_dct = get_ids_from_name('data/class/nicknames.txt','debra','adrian')
-
     ways = advanced_bfs(follow_map,id_dct)
-    ways = dfs(follow_map,id_dct)
-    
-    print(ways)
+
+    pos = id_dct['start_id']
+    goal = id_dct['goal_id']
+    ways = dfs(follow_map,pos,goal,0,{pos:'checked'})
