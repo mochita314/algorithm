@@ -2,13 +2,12 @@
 
 def make_map(data_path):
     '''
-    指定したパスにあるファイルからフォロー関係を格納した辞書を作る関数
-    key: ID
-    value: そのIDの人がフォローしている人のID
+    指定したパスにあるファイルからフォロー関係の辞書を獲得
     '''
-    follow_map = {}
     f = open(data_path)
     lines = f.readlines()
+
+    follow_map = {}
 
     for line in lines:
 
@@ -20,8 +19,9 @@ def make_map(data_path):
             follow_map[key].append(follower)
         else:
             follow_map[key] = [follower]
-
+    
     return follow_map
+
 
 def fix_follow_map(follow_map):
     '''
@@ -65,6 +65,7 @@ def get_ids_from_name(data_path,start_name,goal_name):
 
     return id_dct
 
+
 def bfs(follow_map,id_dct):
 
     start_id = id_dct['start_id']
@@ -72,28 +73,22 @@ def bfs(follow_map,id_dct):
     queue = deque(follow_map[start_id])
 
     visited = {start_id:'checked'}
+
     for q in queue:
         visited[q] = 'checked'
 
     while queue:
 
         ID = queue.popleft()
-        print(ID)
 
-        if ID == goal_id:
-            visited[ID] = 'checked'
-            print('Reached!!')
-            return
-        #else:
-            #visited[ID] = 'checked'
-            #queue.extend(follow_map[ID])
-        else:
-            visited[ID] = 'checked'
-            followers = follow_map[ID]
-            for f in followers:
-                if visited.get(f) == None:
-                    visited[f] = 'checked'
-                    queue.append(f)
+        if visited.get(ID) == None:
+            if ID == goal_id:
+                print('Reached!!')
+                return
+            else:
+                visited[ID] = 'checked'
+                followers = follow_map[ID]
+                queue.append(followers)
 
     return
 
@@ -115,6 +110,7 @@ def advanced_bfs(follow_map,id_dct):
     queue = deque()
 
     for ID in follow_map[start_id]:
+
         id_route = [ID,[start_id]]
         queue.append(id_route)
 
@@ -124,29 +120,31 @@ def advanced_bfs(follow_map,id_dct):
 
     while queue:
 
-        print('here!')
-
         id_route = queue.popleft()
-        print('id_route:',id_route)
 
         ID = id_route[0]
         route = id_route[1]
 
         if visited.get(ID) == None:
 
+            print('route:',route)
+            print('id_route:',id_route)
+
             if ID == goal_id:
-                print('found!',ID)
-                key = len(route)
+                print('Reached')
                 route.append(ID)
+                key = len(route)
                 ways[key] = route
-                #break
+
             else:
                 visited[ID] = 'checked'
                 route.append(ID)
-                for follower in follow_map[ID]:
-                    if visited.get(follower) == None:
-                        id_route = [follower,route]
-                        queue.append(id_route)
+                followers = follow_map[ID]
+                for f in followers:
+                    id_route = [f,route]
+                    queue.append(id_route)
+        else:
+            pass
 
     ways = sorted(ways.items())
 
@@ -190,11 +188,10 @@ if __name__ == '__main__':
     follow_map = {1:[3,5,6],2:[4,5],3:[1,6],4:[2,6],5:[1,2],6:[1,3,4]}
     id_dct = {'start_id':1,'goal_id':2}
     '''
-    
 
-    bfs(follow_map,id_dct)
+    ways = advanced_bfs(follow_map,id_dct)
 
-    #print(ways)
+    print(ways)
 
     #if len(ways) >= 1:
         #min_dis,min_route,max_dis,max_route = get_min_and_max_route(ways)
