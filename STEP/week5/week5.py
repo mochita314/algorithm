@@ -1,32 +1,3 @@
-def load_input_csv(file_path):
-    '''
-    load input_csv and make dictionary of cities
-    '''
-    with open(file_path) as f:
-        reader = csv.reader(f)
-        cities = {}
-        index = 0
-        for row in reader:
-            if row[0] != 'x':
-                cities[index] = [float(row[0]),float(row[1])]
-                index += 1
-    return cities
-
-def distance(city1,city2):
-
-    dis = (city1[0]-city2[0])**2 + (city1[1]-city2[1])**2
-
-    return dis
-
-def calculate_sum_length(cities,tour):
-
-    sum_length = 0
-
-    for i in range(len(tour)):
-        sum_length += distance(cities[tour[i]],cities[tour[(i+1)%len(tour)]])
-
-    return sum_length
-
 def NN(cities):
     '''
     greedy algorithm / nearest neighbor algorithm
@@ -54,15 +25,15 @@ def NN(cities):
 
     return tour
 
-def CHI(spots):
-    '''
-    Convex Hull Insertion algorithm
-    '''
-    return
-
 def GS(spots):
     '''
     GrahamScan algorithm
+    '''
+    return
+
+def CHI(spots):
+    '''
+    Convex Hull Insertion algorithm
     '''
     return
 
@@ -73,12 +44,22 @@ def _2opt(cities,tour,max_iter):
     _iter = 0
     len_tour = len(tour)
 
-    while _iter < max_iter:
+    checked = set()
+
+    while _iter < min(max_iter,len_tour*(len_tour-1)):
 
         i = random.randrange(len_tour)
         j = random.randrange(len_tour)
-        while j in [i-1,i,i+1]:
+
+        cnt = 0
+        while i==j or (i,j) in checked:
+            if cnt > 10:
+                break
+            cnt += 1
+            i = random.randrange(len_tour)
             j = random.randrange(len_tour)
+        
+        checked.add((i,j))
         
         pair_i = []
         pair_i.append(cities[tour[i]])
@@ -91,13 +72,13 @@ def _2opt(cities,tour,max_iter):
         current_dis = distance(pair_i[0],pair_i[1]) + distance(pair_j[0],pair_j[1])
         new_dis = distance(pair_i[0],pair_j[0]) + distance(pair_i[1],pair_j[1])
 
-        if new_dis < current_dis:
+        if new_dis <= current_dis:
 
             new_tour = tour[(i+1)%len_tour:(j+1)%len_tour]
             tour[(i+1)%len_tour:(j+1)%len_tour] = new_tour[::-1]
             print('changed!')
             print('sum_length:',calculate_sum_length(cities,tour))
-        
+            
         _iter += 1
 
     return tour
@@ -105,18 +86,16 @@ def _2opt(cities,tour,max_iter):
 if __name__ == '__main__':
 
     import random
-    import csv
     import argparse
+
+    from util import *
 
     parser = argparse.ArgumentParser(description='Program for solving TSP problem')
     parser.add_argument('-i','--index',help='index of input_csv',default='0')
+    parser.add_argument('-m','--max_iter',help='maximum times of iteration of swap operation',default=10000,type=int)
     args = parser.parse_args()
 
     cities = load_input_csv('./google-step-tsp/input_'+args.index+'.csv')
-    #cities = {0:[1,5],1:[3,3],2:[4,9],3:[6,7],4:[2,8]}
     tour = NN(cities)
-    print(tour)
-    print('sum_length:',calculate_sum_length(cities,tour))
-
-    tour = _2opt(cities,tour,100)
+    tour = _2opt(cities,tour,args.max_iter)
     print(tour)
