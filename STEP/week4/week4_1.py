@@ -135,6 +135,7 @@ def advanced_bfs(follow_map,id_dct):
     goal_id = id_dct['goal_id']
 
     queue = deque()
+
     for f in follow_map[start_id]:
         queue.append([f,[start_id]])
 
@@ -151,16 +152,24 @@ def advanced_bfs(follow_map,id_dct):
         if visited.get(ID) == None:
             if ID == goal_id:
                 print('Reached!!')
-                route.append(ID)
-                key = len(route)
-                ways[key] = route
+                new_route = []
+                for r in route:
+                    new_route.append(r)
+                new_route.append(ID)
+                key = len(new_route)
+                if ways.get(key) == None:
+                    ways[key] = []
+                ways[key].append(new_route)
             else:
                 visited[ID] = 'checked'
                 followers = follow_map[ID]
-                route.append(ID)
+                new_route = []
+                for r in route:
+                    new_route.append(r)
+                new_route.append(ID)
                 for f in followers:
                     if visited.get(f) == None:
-                        queue.append([f,route])
+                        queue.append([f,new_route])
 
     return ways
 
@@ -197,6 +206,7 @@ if __name__ == '__main__':
 
     id_dct = get_ids_from_name('data/class/nicknames.txt','debra','adrian')
     ways = advanced_bfs(follow_map,id_dct)
+    print(ways)
 
     pos = id_dct['start_id']
     goal = id_dct['goal_id']
