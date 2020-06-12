@@ -152,21 +152,26 @@ def advanced_bfs(follow_map,id_dct):
         if visited.get(ID) == None:
             if ID == goal_id:
                 print('Reached!!')
+
                 new_route = []
                 for r in route:
                     new_route.append(r)
+
                 new_route.append(ID)
                 key = len(new_route)
                 if ways.get(key) == None:
                     ways[key] = []
                 ways[key].append(new_route)
+
             else:
                 visited[ID] = 'checked'
                 followers = follow_map[ID]
+
                 new_route = []
                 for r in route:
                     new_route.append(r)
                 new_route.append(ID)
+
                 for f in followers:
                     if visited.get(f) == None:
                         queue.append([f,new_route])
@@ -200,6 +205,7 @@ def get_min_and_max_route(ways):
 if __name__ == '__main__':
 
     from collections import deque
+    import copy
 
     follow_map = make_map('data/class/links.txt')
     follow_map = fix_follow_map(follow_map)
