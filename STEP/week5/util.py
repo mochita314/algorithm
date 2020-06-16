@@ -21,6 +21,17 @@ def distance(city1,city2):
 
     return dis
 
+def cities_to_dist(cities):
+
+    N = len(cities)
+
+    dist = [[0] * N for i in range(N)]
+    for i in range(N):
+        for j in range(i, N):
+            dist[i][j] = dist[j][i] = distance(cities[i], cities[j])
+    
+    return dist
+
 def angle(i,j,k):
     
     import math

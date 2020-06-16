@@ -1,15 +1,10 @@
-def NN(cities):
+def NN(cities,dist):
     '''
     greedy algorithm / nearest neighbor algorithm
     copied from google-step-tsp/solver_greedy.py
     '''
 
     N = len(cities)
-
-    dist = [[0] * N for i in range(N)]
-    for i in range(N):
-        for j in range(i, N):
-            dist[i][j] = dist[j][i] = distance(cities[i], cities[j])
 
     current_city = 0
     unvisited_cities = set(range(1, N))
@@ -87,6 +82,9 @@ def GS(cities):
     cities_lst = find_min_y(cities_lst)
     cities_lst = sort_by_angle(cities_lst)
 
+    # 凸包から削除された都市を追加していくリスト
+    left_cities = []
+
     index = -1
     count = 0
     while True:
@@ -94,6 +92,7 @@ def GS(cities):
         count += 1
         angle_ijk = angle(cities_lst[index][1:],cities_lst[index+1][1:],cities_lst[index+2][1:])
         if angle_ijk < 0:
+            left_cities.append(cities_lst[index+1])
             del cities_lst[index+1]
             count = 0
         if count == len(cities_lst):
@@ -101,16 +100,89 @@ def GS(cities):
         if index >= len(cities_lst) - 3:
             index -= 1
     
-    return cities_lst
+    return cities_lst,left_cities
 
-def CHI(cities):
+def CHI(cities,dist):
     '''
     Convex Hull Insertion algorithm
     '''
-    convex_hull = GS(cities)
+    def eval_cost(dist,i,j,k):
+        # cityの追加コストを求める関数
+        cost = dist[i][k] + dist[k][j] - dist[i][j]
+        return cost
+    
+    def additional_cost(dist,i,j,k):
+        add_cost = (dist[i][k] + dist[k][j]) / dist[i][j]
+        return add_cost
+    
+    def find_k(convex_hull,left_cities,dist):
+        '''
+        凸包上の連続した都市をi,jとし、内部の各都市kに対してコストを計算
+        kに対するコスト最小とする都市i,jを決定し辞書にkeyをkとして格納していく
+        '''
+        k_dct = {}
+        for k in range(len(left_cities)):
+            index_k = left_cities[k][0]
+
+            for i in range(len(convex_hull)):
+                index_i = convex_hull[i][0]
+                index_j = convex_hull[(i+1)%len(convex_hull)][0]
+                cost = eval_cost(dist,index_i,index_j,index_k)
+                if k==0:
+                    min_cost = cost
+                    min_i = i
+                    min_i_in_cities = index_i
+                    min_j_in_cities = index_j
+                else:
+                    if cost < min_cost:
+                        min_cost = cost
+                        min_i = i
+                        min_i_in_cities = index_i
+                        min_j_in_cities = index_j
+
+            # index_k : left_citiesのk番目の都市の、cities全体でのindex
+            # k : left_citiesのk番目の都市のまさにleft_cities上でのindex(=k)
+            # min_i : left_citiesのk番目の都市を直後に挿入すべき、convex_hull上のindex
+            # min_i(j)_in_cities : left_citiesのk番目の都市を直後に挿入すべき都市の、cities全体でのindex
+            k_dct[index_k] = [k,min_i,min_i_in_cities,min_j_in_cities]
+    
+        return k_dct
+    
+    def add_best_k(convex_hull,left_cities,k_dct,dist):
+        '''
+        find_kで見つけたi,j,kの組み合わせの中から、
+        追加コストが最小となるkを凸包に追加する
+        '''
+        min_cost = 10**10
+
+        for index_k in k_dct:
+            i = k_dct[index_k][2]
+            j = k_dct[index_k][3]
+            add_cost = additional_cost(dist,i,j,index_k)
+            if add_cost < min_cost:
+                best_k = index_k
+        
+        k = k_dct[best_k][0]
+        i = k_dct[best_k][1]
+
+        convex_hull.insert(i+1,left_cities[k])
+        del left_cities[k]
+
+        return convex_hull,left_cities
+    
+    convex_hull,left_cities = GS(cities)
     # まずグラハムスキャン法により凸包を初期経路として求める
 
-    return
+    while left_cities:
+        #残りの都市がなくなるまで追加していく
+        k_dct = find_k(convex_hull,left_cities,dist)
+        convex_hull,left_cities = add_best_k(convex_hull,left_cities,k_dct,dist)
+    
+    tour = []
+    for i in range(len(convex_hull)):
+        tour.append(convex_hull[i][0])
+    
+    return tour
 
 def _2opt(cities,tour,max_iter):
     '''
@@ -118,6 +190,8 @@ def _2opt(cities,tour,max_iter):
     '''
     _iter = 0
     len_tour = len(tour)
+
+    checked = set()
 
     while _iter < max_iter:
 
@@ -152,8 +226,10 @@ def _2opt(cities,tour,max_iter):
 
             new_tour = tour[(i+1)%len_tour:(j+1)%len_tour]
             tour[(i+1)%len_tour:(j+1)%len_tour] = new_tour[::-1]
-            print('changed!')
-            print('sum_length:',calculate_sum_length(cities,tour))
+            #print('changed!')
+            #print('sum_length:',calculate_sum_length(cities,tour))
+        
+        checked.add((i,j))
             
         _iter += 1
 
@@ -173,9 +249,10 @@ if __name__ == '__main__':
 
     cities = load_input_csv('./google-step-tsp/input_'+args.index+'.csv')
 
-    convex_hull = GS(cities)
-    print(convex_hull)
+    dist = cities_to_dist(cities)
 
-    #tour = NN(cities)
-    #tour = double_2opt(cities,tour,args.max_iter)
-    #print(tour)
+    tour = CHI(cities,dist)
+
+    #tour = NN(cities,dist)
+    tour = _2opt(cities,tour,args.max_iter)
+    print(tour)
