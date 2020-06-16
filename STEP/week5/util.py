@@ -1,5 +1,4 @@
 def load_input_csv(file_path):
-
     import csv
 
     '''
@@ -33,8 +32,6 @@ def cities_to_dist(cities):
     return dist
 
 def angle(i,j,k):
-    
-    import math
 
     outer_product = (j[0]-i[0])*(k[1]-i[1]) - (k[0]-i[0])*(j[1]-i[1])
 
@@ -55,7 +52,17 @@ def dct_to_lst(dct):
         lst.append([key,dct[key][0],dct[key][1]])
     return lst
 
-def record_tour(tour,file_path):
+def record_tour(tour,file_index):
+    import csv
     '''
+    結果をoutput_{0~6}.csvに書き込む関数
     '''
-    return
+    file_path = './google-step-tsp/output_'+str(file_index)+'.csv'
+
+    with open(file_path,'w') as f:
+        f.write('index')
+        f.write('\n')
+        for i in range(len(tour)):
+            num = str(tour[i])
+            f.write(num)
+            f.write('\n')

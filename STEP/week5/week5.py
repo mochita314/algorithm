@@ -202,7 +202,7 @@ def _2opt(cities,tour,max_iter):
         cnt = 0
         while i==j or (i,j) in checked:
             # 同じ辺を見たり、もうすでに見た組み合わせはできるだけ避ける
-            if cnt > 10 and i!=j:
+            if cnt > 100 and i!=j:
                 # max_iterが組み合わせ数より大きい場合、何回やってもすでに見た組み合わせを見ることになる
                 # その場合に無限ループにならないように10回やっても被ってたら抜ける
                 break
@@ -239,20 +239,33 @@ if __name__ == '__main__':
 
     import random
     import argparse
+    import csv
+    import math
 
     from util import *
 
     parser = argparse.ArgumentParser(description='Program for solving TSP problem')
     parser.add_argument('-i','--index',help='index of input_csv',default='0')
     parser.add_argument('-m','--max_iter',help='maximum times of iteration of swap operation',default=1000,type=int)
+    parser.add_argument('-o','--option',help='which method to use',default='CHI')
     args = parser.parse_args()
 
     cities = load_input_csv('./google-step-tsp/input_'+args.index+'.csv')
 
     dist = cities_to_dist(cities)
 
-    tour = CHI(cities,dist)
+    if args.option == 'CHI':
+        tour = CHI(cities,dist)
+    elif args.option == 'NN':
+        tour = NN(cities,dist)
+    elif args.option == 'SPLIT':
+        tour = SPLIT(cities,tour,size)
+    else:
+        print('正しい方法を入力してください')
+        exit()
 
-    #tour = NN(cities,dist)
     tour = _2opt(cities,tour,args.max_iter)
     print(tour)
+    print('sum_length:',calculate_sum_length(cities,tour))
+
+    record_tour(tour,args.index)
