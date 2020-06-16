@@ -1,7 +1,7 @@
 # Week5 Homework - TSP
 
 ### 実行方法
-```python3 main.py -i {入力csvのindex} -m {2_opt法の試行回数} -o {適用する手法（CHI or NN)}```
+```python3 week5.py -i {入力csvのindex} -m {2_opt法の試行回数} -o {適用する手法（CHI or NN)}```
 
 ### 現状の My Best Score
 0. 3291.621721409246

@@ -57,7 +57,7 @@ def record_tour(tour,file_index):
     '''
     結果をoutput_{0~6}.csvに書き込む関数
     '''
-    file_path = './google-step-tsp/output_'+str(file_index)+'.csv'
+    file_path = './output/output_'+str(file_index)+'.csv'
 
     with open(file_path,'w') as f:
         f.write('index')
