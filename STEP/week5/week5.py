@@ -210,10 +210,12 @@ def _2opt(cities,tour,max_iter):
             i = random.randrange(len_tour)
             j = random.randrange(len_tour)
         
+        # i番目の辺を構成する頂点の組み合わせをpair_iに格納
         pair_i = []
         pair_i.append(cities[tour[i]])
         pair_i.append(cities[tour[(i+1)%len_tour]])
         
+        # j番目の辺を構成する頂点の組み合わせをpair_jにか右脳
         pair_j = []
         pair_j.append(cities[tour[j]])
         pair_j.append(cities[tour[(j+1)%len_tour]])
@@ -226,9 +228,8 @@ def _2opt(cities,tour,max_iter):
 
             new_tour = tour[(i+1)%len_tour:(j+1)%len_tour]
             tour[(i+1)%len_tour:(j+1)%len_tour] = new_tour[::-1]
-            #print('changed!')
-            #print('sum_length:',calculate_sum_length(cities,tour))
         
+        # すでに検証した組み合わせとして記録する
         checked.add((i,j))
             
         _iter += 1
@@ -246,7 +247,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Program for solving TSP problem')
     parser.add_argument('-i','--index',help='index of input_csv',default='0')
-    parser.add_argument('-m','--max_iter',help='maximum times of iteration of swap operation',default=1000,type=int)
+    parser.add_argument('-m','--max_iter',help='maximum times of iteration of swap operation',default=10000,type=int)
     parser.add_argument('-o','--option',help='which method to use',default='CHI')
     args = parser.parse_args()
 
@@ -258,8 +259,6 @@ if __name__ == '__main__':
         tour = CHI(cities,dist)
     elif args.option == 'NN':
         tour = NN(cities,dist)
-    elif args.option == 'SPLIT':
-        tour = SPLIT(cities,tour,size)
     else:
         print('正しい方法を入力してください')
         exit()
@@ -268,4 +267,8 @@ if __name__ == '__main__':
     print(tour)
     print('sum_length:',calculate_sum_length(cities,tour))
 
-    record_tour(tour,args.index)
+    key = input()
+    if key == 'a':
+        # 結果を見て記録するかどうかを判断する
+        print('recorded!')
+        record_tour(tour,args.index)
