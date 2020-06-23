@@ -33,6 +33,42 @@ void simple_add_to_free_list(simple_metadata_t* metadata) {
   simple_heap.free_head = metadata;
 }
 
+void my_add_to_free_list(simple_metadata_t* metadata){
+  // 連結できる場所があるときは連結するように実装
+
+  //　Add a free slot to the beginning of the free list.
+  assert(!metadata->next);
+  metadata->next = simple_heap.free_head;
+  simple_heap.free_head = metadata;
+
+  simple_metadata_t* prev = NULL;
+
+  simple_metadata_t* head = simple_heap.free_head;
+  void* ptr = metadata + 1;
+  void* end_of_head = (char*)ptr + head->size;
+
+  while(metadata){
+
+    prev = metadata;
+    metadata = metadata->next;
+
+    if (metadata == end_of_head){
+      head->size = head->size + sizeof(simple_metadata_t) + metadata->size;
+      prev->next = metadata->next;
+    }
+    /*else
+    {
+      void* cur_ptr = metadata + 1;
+      void* cur_end = (char*)cur_ptr + metadata->size;
+      if(cur_end == head){
+        
+      }
+
+    }
+    */
+  }
+}
+
 // Remove a free slot from the free list.
 void simple_remove_from_free_list(simple_metadata_t* metadata,
                                   simple_metadata_t* prev) {
@@ -186,7 +222,8 @@ void* my_malloc(size_t size) {
     metadata->size = buffer_size - sizeof(simple_metadata_t);
     metadata->next = NULL;
     // Add the memory region to the free list.
-    simple_add_to_free_list(metadata);
+    // simple_add_to_free_list(metadata);
+    my_add_to_free_list(metadata);
     // Now, try simple_malloc() again. This should succeed.
     return simple_malloc(size);
   }
@@ -213,7 +250,8 @@ void* my_malloc(size_t size) {
     new_metadata->size = remaining_size - sizeof(simple_metadata_t);
     new_metadata->next = NULL;
     // Add the remaining free slot to the free list.
-    simple_add_to_free_list(new_metadata);
+    //simple_add_to_free_list(new_metadata);
+    my_add_to_free_list(new_metadata);
   }
   return ptr;
 
@@ -222,7 +260,16 @@ void* my_malloc(size_t size) {
 // This is called every time an object is freed.  You are not allowed to use
 // any library functions other than mmap_from_system / munmap_to_system.
 void my_free(void* ptr) {
-  simple_free(ptr);  // Rewrite!
+  // Look up the metadata. The metadata is placed just prior to the object.
+  // ... | metadata | object | ...
+  //     ^          ^
+  //     metadata   ptr
+  simple_metadata_t* metadata = (simple_metadata_t*)ptr - 1;
+  // Add the free slot to the free list.
+  //simple_add_to_free_list(metadata);
+  my_add_to_free_list(metadata);
+
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
