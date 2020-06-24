@@ -33,40 +33,33 @@ void simple_add_to_free_list(simple_metadata_t* metadata) {
   simple_heap.free_head = metadata;
 }
 
-void my_add_to_free_list(simple_metadata_t* metadata){
+void my_add_to_free_list_for_union(simple_metadata_t* metadata){
   // 連結できる場所があるときは連結するように実装
 
-  //　Add a free slot to the beginning of the free list.
   assert(!metadata->next);
   metadata->next = simple_heap.free_head;
   simple_heap.free_head = metadata;
 
   simple_metadata_t* prev = NULL;
 
-  simple_metadata_t* head = simple_heap.free_head;
   void* ptr = metadata + 1;
-  void* end_of_head = (char*)ptr + head->size;
+  void* end_of_head = (char*)ptr + metadata->size;
 
   while(metadata){
-
     prev = metadata;
     metadata = metadata->next;
-
     if (metadata == end_of_head){
-      head->size = head->size + sizeof(simple_metadata_t) + metadata->size;
+      // 新 -> 既存 の順に連続しているとき
+      simple_heap.free_head->size = simple_head.free_head->size + sizeof(simple_metadata_t) + metadata->size;
       prev->next = metadata->next;
     }
-    /*else
-    {
-      void* cur_ptr = metadata + 1;
-      void* cur_end = (char*)cur_ptr + metadata->size;
-      if(cur_end == head){
-        
-      }
 
-    }
-    */
+    // 既存 -> 新しいの順がうまくいかない
   }
+}
+
+void my_add_to_free_list_for_sort(simple_metadata_t* metadata{
+
 }
 
 // Remove a free slot from the free list.
@@ -223,7 +216,7 @@ void* my_malloc(size_t size) {
     metadata->next = NULL;
     // Add the memory region to the free list.
     // simple_add_to_free_list(metadata);
-    my_add_to_free_list(metadata);
+    my_add_to_free_list_for_union(metadata);
     // Now, try simple_malloc() again. This should succeed.
     return simple_malloc(size);
   }
@@ -251,7 +244,7 @@ void* my_malloc(size_t size) {
     new_metadata->next = NULL;
     // Add the remaining free slot to the free list.
     //simple_add_to_free_list(new_metadata);
-    my_add_to_free_list(new_metadata);
+    my_add_to_free_list_for_union(new_metadata);
   }
   return ptr;
 
@@ -267,8 +260,7 @@ void my_free(void* ptr) {
   simple_metadata_t* metadata = (simple_metadata_t*)ptr - 1;
   // Add the free slot to the free list.
   //simple_add_to_free_list(metadata);
-  my_add_to_free_list(metadata);
-
+  my_add_to_free_list_for_union(metadata);
 
 }
 
