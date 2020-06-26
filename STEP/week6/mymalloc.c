@@ -45,21 +45,35 @@ void my_add_to_free_list_for_union(simple_metadata_t* metadata){
   void* ptr = metadata + 1;
   void* end_of_head = (char*)ptr + metadata->size;
 
-  while(metadata){
+  int cnt = 0;
+
+  while(metadata->next){
+
+    if(cnt==2)break;
+
     prev = metadata;
     metadata = metadata->next;
+
+    void* c_ptr = metadata + 1;
+    void* c_end = (char*)c_ptr + metadata->size;
+
     if (metadata == end_of_head){
-      // 新 -> 既存 の順に連続しているとき
-      simple_heap.free_head->size = simple_head.free_head->size + sizeof(simple_metadata_t) + metadata->size;
+      // 新 -> 既存
+      simple_heap.free_head->size = simple_heap.free_head->size + sizeof(simple_metadata_t) + metadata->size;
       prev->next = metadata->next;
+      cnt++;
     }
-
-    // 既存 -> 新しいの順がうまくいかない
+    /* 以下、うまくいかない
+    else{
+      if (simple_heap.free_head == c_end){
+        // 既存 -> 新
+        metadata->size = simple_heap.free_head->size + sizeof(simple_metadata_t) + metadata->size;
+        simple_heap.free_head = simple_heap.free_head->next;
+        cnt++;
+      }
+    }
+    */
   }
-}
-
-void my_add_to_free_list_for_sort(simple_metadata_t* metadata{
-
 }
 
 // Remove a free slot from the free list.
