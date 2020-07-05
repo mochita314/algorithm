@@ -55,7 +55,7 @@ void my_add_to_free_list_for_union(simple_metadata_t* metadata){
     metadata = metadata->next;
 
     void* c_ptr = metadata + 1;
-    void* c_end = (char*)c_ptr + metadata->size;
+    void* c_end = (void*)c_ptr + metadata->size;
 
     if (metadata == end_of_head){
       // 新 -> 既存
@@ -72,7 +72,7 @@ void my_add_to_free_list_for_union(simple_metadata_t* metadata){
         cnt++;
       }
     }
-    */
+    ここまで */
   }
 }
 
@@ -202,7 +202,7 @@ void* my_malloc(size_t size) {
         best_prev = prev;
         best = metadata;
       }
-      else if (!best && metadata->size < best->size){
+      else if (best && metadata->size < best->size){
         // 見つかった領域のサイズが既に見つかったものの中で最小だった場合
         best_prev = prev;
         best = metadata;

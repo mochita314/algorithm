@@ -41,14 +41,16 @@ int main(void){
             start = clock();
 
             if(time==0){
+                // i-k-j
                 for(int i=0;i<n;i++){
-                    for(int j=0;j<n;j++){
-                        for(int k=0;k<n;k++){
+                    for(int k=0;k<n;k++){
+                        for(int j=0;j<n;j++){
                             C[i][j] += A[i][k]*B[k][j];
                         }
                     }
                 }   
             }else if(time==1){
+                // i-j-k
                 for(int i=0;i<n;i++){
                     for(int j=0;j<n;j++){
                         for(int k=0;k<n;k++){
@@ -57,33 +59,37 @@ int main(void){
                     }
                 }  
             }else if(time==2){
-                for(int i=0;i<n;i++){
-                    for(int j=0;j<n;j++){
-                        for(int k=0;k<n;k++){
+                // k-i-j
+                for(int k=0;k<n;k++){
+                    for(int i=0;i<n;i++){
+                        for(int j=0;j<n;j++){
                             C[i][j] += A[i][k]*B[k][j];
                         }
                     }
                 }  
             }else if(time==3){
-                for(int i=0;i<n;i++){
+                // k-j-i
+                for(int k=0;k<n;k++){
                     for(int j=0;j<n;j++){
-                        for(int k=0;k<n;k++){
+                        for(int i=0;i<n;i++){
                             C[i][j] += A[i][k]*B[k][j];
                         }
                     }
                 }  
             }else if(time==4){
-                for(int i=0;i<n;i++){
-                    for(int j=0;j<n;j++){
+                // j-i-k
+                for(int j=0;j<n;j++){
+                    for(int i=0;i<n;i++){
                         for(int k=0;k<n;k++){
                             C[i][j] += A[i][k]*B[k][j];
                         }
                     }
                 }              
             }else{
-                for(int i=0;i<n;i++){
-                    for(int j=0;j<n;j++){
-                        for(int k=0;k<n;k++){
+                // j-k-i
+                for(int j=0;j<n;j++){
+                    for(int k=0;k<n;k++){
+                        for(int i=0;i<n;i++){
                             C[i][j] += A[i][k]*B[k][j];
                         }
                     }
@@ -96,24 +102,18 @@ int main(void){
         }
     }
     
-    printf("%s-%s-%s -> %.8f秒\n","i","j","k",times[0]);
-    printf("%s-%s-%s -> %.8f秒\n","i","j","k",times[1]);
-    printf("%s-%s-%s -> %.8f秒\n","i","j","k",times[2]);
-    printf("%s-%s-%s -> %.8f秒\n","i","j","k",times[3]);
-    printf("%s-%s-%s -> %.8f秒\n","i","j","k",times[4]);
-    printf("%s-%s-%s -> %.8f秒\n","i","j","k",times[5]);
 
     for(int i=0;i<6;i++){
         times[i] /= max_iter;
     }
 
     //printf("%.8f秒かかりました\n",(double)(end-start)/CLOCKS_PER_SEC);
-    printf("%s-%s-%s -> %.8f秒\n","i","j","k",times[0]);
+    printf("%s-%s-%s -> %.8f秒\n","j","k","i",times[5]);
+    printf("%s-%s-%s -> %.8f秒\n","j","i","k",times[4]);
+    printf("%s-%s-%s -> %.8f秒\n","k","j","i",times[3]);
+    printf("%s-%s-%s -> %.8f秒\n","k","i","j",times[2]);
     printf("%s-%s-%s -> %.8f秒\n","i","j","k",times[1]);
-    printf("%s-%s-%s -> %.8f秒\n","i","j","k",times[2]);
-    printf("%s-%s-%s -> %.8f秒\n","i","j","k",times[3]);
-    printf("%s-%s-%s -> %.8f秒\n","i","j","k",times[4]);
-    printf("%s-%s-%s -> %.8f秒\n","i","j","k",times[5]);
+    printf("%s-%s-%s -> %.8f秒\n","i","k","j",times[0]);
     
     return 0;
 
